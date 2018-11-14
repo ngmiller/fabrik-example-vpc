@@ -1,0 +1,206 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "VPC",
+    "Parameters": {},
+    "Outputs": {
+        "OutputVPC": {
+            "Value": { "Ref": "VPC" },
+            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-VPC" } }
+        },
+        "OutputPublicSubnetOne": {
+            "Value": { "Ref": "PublicSubnetOne" },
+            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-PublicSubnetOne" } }
+        },
+        "OutputPublicSubnetTwo": {
+            "Value": { "Ref": "PublicSubnetTwo" },
+            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-PublicSubnetTwo" } }
+        },
+        "OutputPrivateSubnetOne": {
+            "Value": { "Ref": "PrivateSubnetOne" },
+            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-PrivateSubnetOne" } }
+        },
+        "OutputPrivateSubnetTwo": {
+            "Value": { "Ref": "PrivateSubnetTwo" },
+            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-PrivateSubnetTwo" } }
+        },
+        "OutputSSHSecurityGroup": {
+            "Value": { "Ref": "SSHSecurityGroup" },
+            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-SSHSecurityGroup" } }
+        }
+    },
+    "Resources": {
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "EnableDnsSupport": true,
+                "EnableDnsHostnames": true,
+                "CidrBlock": "10.0.0.0/16"
+            }
+        },
+
+        "PublicSubnetOne": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [ "0", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+                "VpcId": { "Ref": "VPC" },
+                "CidrBlock": "10.0.0.0/24",
+                "MapPublicIpOnLaunch": true
+            }
+        },
+        "PublicSubnetTwo": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [ "1", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+                "VpcId": { "Ref": "VPC" },
+                "CidrBlock": "10.0.1.0/24",
+                "MapPublicIpOnLaunch": true
+            }
+        },
+        "PrivateSubnetOne": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [ "0", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+                "VpcId": { "Ref": "VPC" },
+                "CidrBlock": "10.0.2.0/24"
+            }
+        },
+        "PrivateSubnetTwo": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [ "1", { "Fn::GetAZs": { "Ref": "AWS::Region" } } ] },
+                "VpcId": { "Ref": "VPC" },
+                "CidrBlock": "10.0.3.0/24"
+            }
+        },
+
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "GatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" },
+                "InternetGatewayId": { "Ref": "InternetGateway" }
+            }
+        },
+
+        "PublicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" }
+            }
+        },
+        "PublicRoute": {
+            "Type": "AWS::EC2::Route",
+            "DependsOn": "GatewayAttachment",
+            "Properties": {
+                "RouteTableId": { "Ref": "PublicRouteTable" },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": { "Ref": "InternetGateway" }
+            }
+        },
+        "PublicSubnetOneRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": { "Ref": "PublicSubnetOne" },
+                "RouteTableId": { "Ref": "PublicRouteTable" }
+            }
+        },
+        "PublicSubnetTwoRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": { "Ref": "PublicSubnetTwo" },
+                "RouteTableId": { "Ref": "PublicRouteTable" }
+            }
+        },
+
+        "NatGatewayOneAttachment": {
+            "Type": "AWS::EC2::EIP",
+            "DependsOn": "GatewayAttachment",
+            "Properties": {
+                "Domain": "vpc"
+            }
+        },
+        "NatGatewayTwoAttachment": {
+            "Type": "AWS::EC2::EIP",
+            "DependsOn": "GatewayAttachment",
+            "Properties": {
+                "Domain": "vpc"
+            }
+        },
+        "NatGatewayOne": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": { "Fn::GetAtt": [ "NatGatewayOneAttachment", "AllocationId" ] },
+                "SubnetId": { "Ref": "PublicSubnetOne" }
+            }
+        },
+        "NatGatewayTwo": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": { "Fn::GetAtt": [ "NatGatewayTwoAttachment", "AllocationId" ] },
+                "SubnetId": { "Ref": "PublicSubnetTwo" }
+            }
+        },
+
+        "PrivateRouteTableOne": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" }
+            }
+        },
+        "PrivateRouteOne": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": { "Ref": "PrivateRouteTableOne" },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": { "Ref": "NatGatewayOne" }
+            }
+        },
+        "PrivateRouteTableOneAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": { "Ref": "PrivateRouteTableOne" },
+                "SubnetId": { "Ref": "PrivateSubnetOne" }
+            }
+        },
+
+        "PrivateRouteTableTwo": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" }
+            }
+        },
+        "PrivateRouteTwo": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": { "Ref": "PrivateRouteTableTwo" },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": { "Ref": "NatGatewayTwo" }
+            }
+        },
+        "PrivateRouteTableTwoAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": { "Ref": "PrivateRouteTableTwo" },
+                "SubnetId": { "Ref": "PrivateSubnetTwo" }
+            }
+        },
+
+        "SSHSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "shared ssh security group for bastion hosts and their targets",
+                "VpcId": { "Ref": "VPC" }
+            }
+        },
+        "SSHSecurityGroupIngressFromSelf": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "GroupId": { "Ref": "SSHSecurityGroup" },
+                "IpProtocol": -1,
+                "SourceSecurityGroupId": { "Ref": "SSHSecurityGroup" }
+            }
+        }
+    }
+}
