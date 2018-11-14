@@ -7,7 +7,7 @@
         }
     },
     "Outputs": {
-        "OutputVPC": {
+        "OutputVPC!": {
             "Value": { "Ref": "VPC" },
             "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-VPC" } }
         },
