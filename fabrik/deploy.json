@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "VPC",
+    "Description": "fabrik-example-vpc",
     "Parameters": {
         "Foo": {
             "Type": "String"
@@ -26,10 +26,6 @@
         "OutputPrivateSubnetTwo": {
             "Value": { "Ref": "PrivateSubnetTwo" },
             "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-PrivateSubnetTwo" } }
-        },
-        "OutputSSHSecurityGroup": {
-            "Value": { "Ref": "SSHSecurityGroup" },
-            "Export": { "Name": { "Fn::Sub": "${AWS::StackName}-SSHSecurityGroup" } }
         }
     },
     "Resources": {
@@ -188,22 +184,6 @@
             "Properties": {
                 "RouteTableId": { "Ref": "PrivateRouteTableTwo" },
                 "SubnetId": { "Ref": "PrivateSubnetTwo" }
-            }
-        },
-
-        "SSHSecurityGroup": {
-            "Type": "AWS::EC2::SecurityGroup",
-            "Properties": {
-                "GroupDescription": "shared ssh security group for bastion hosts and their targets",
-                "VpcId": { "Ref": "VPC" }
-            }
-        },
-        "SSHSecurityGroupIngressFromSelf": {
-            "Type": "AWS::EC2::SecurityGroupIngress",
-            "Properties": {
-                "GroupId": { "Ref": "SSHSecurityGroup" },
-                "IpProtocol": -1,
-                "SourceSecurityGroupId": { "Ref": "SSHSecurityGroup" }
             }
         }
     }

@@ -1,25 +1,20 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "CI/CD VPC",
+    "Description": "fabrik-example-vpc",
     "Parameters": {
         "ArtifactStore": {
-            "Description": "pipeline artifact bucket",
             "Type": "String"
         },
         "RepoOwner": {
-            "Description": "repo owner (account)",
             "Type": "String"
         },
         "RepoName": {
-            "Description": "repo name",
             "Type": "String"
         },
         "RepoBranch": {
-            "Description": "git branch",
             "Type": "String"
         },
         "RepoToken": {
-            "Description": "oauth token",
             "Type": "String",
             "NoEcho": true
         },
