@@ -69,8 +69,8 @@
                                 "Capabilities": "CAPABILITY_IAM",
                                 "RoleArn": { "Fn::GetAtt": [ "PipelineRole", "Arn" ] },
                                 "StackName": { "Fn::Sub": "${AWS::StackName}-deploy" },
-                                "TemplateConfiguration": { "Fn::Sub": "source::deploy/${Stage}.json" },
-                                "TemplatePath": "source::deploy/deploy.json"
+                                "TemplateConfiguration": { "Fn::Sub": "source::fabrik/${Stage}.json" },
+                                "TemplatePath": "source::fabrik/deploy.json"
                             },
                             "InputArtifacts": [ { "Name": "source" } ],
                             "RunOrder": 1
